@@ -1,7 +1,9 @@
 const { response } = require('express')
 const express = require('express')
 const app = express()
+const cors = require('cors')
 app.use(express.json())
+app.use(cors())
 var morgan = require('morgan')
 
 morgan.token('body', req => {
@@ -48,7 +50,7 @@ app.get('/info', (request, response) => {
 
 app.get('/api/persons/:id', (request, response) => {
   const id = Number(request.params.id)
-  const person = persons.find(p => p.id == id)
+  const person = persons.find(p => p.id === id)
   if (person) {
     response.json(person)
   } else {
@@ -83,10 +85,16 @@ app.post('/api/persons/', (request, response) => {
     number: person.number
   }
   persons = persons.concat(newPerson)
-  response.status(204).end()
+  response.json(newPerson)
 })
 
-const PORT = 3001
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
