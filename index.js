@@ -1,7 +1,8 @@
-const { response } = require('express')
 const express = require('express')
 const app = express()
 const cors = require('cors')
+require('dotenv').config()
+const Person = require('./models/person')
 app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
@@ -38,7 +39,9 @@ let persons = [
 ]
 
 app.get('/api/persons', (request, response) => {
-  response.send(persons)
+  Person.find({}).then(persons => {
+    response.json(persons)
+  })
 })
 
 app.get('/info', (request, response) => {
@@ -66,13 +69,13 @@ app.delete('/api/persons/:id', (request, response) => {
 })
 
 app.post('/api/persons/', (request, response) => {
-  const person = request.body
-  if (!person.name || !person.number) {
+  const content = request.body
+  if (!content.name || !content.number) {
     return response.status(400).json({
       error: 'name or number missing'
     })
   }
-  if (persons.map(p => p.name).includes(person.name)) {
+  if (persons.map(p => p.name).includes(content.name)) {
     return response.status(400).json({
       error: 'name must be unique'
     })
@@ -80,13 +83,14 @@ app.post('/api/persons/', (request, response) => {
   const maxId = persons.length > 0
     ? Math.max(...persons.map(p => p.id)) + 1
     : 0
-  const newPerson = {
+  const person = new Person({
     id: maxId,
-    name: person.name,
-    number: person.number
-  }
-  persons = persons.concat(newPerson)
-  response.json(newPerson)
+    name: content.name,
+    number: content.number
+  })
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
+  })
 })
 
 const unknownEndpoint = (request, response) => {
