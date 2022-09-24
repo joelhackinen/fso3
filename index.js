@@ -80,11 +80,7 @@ app.post('/api/persons/', (request, response) => {
       error: 'name must be unique'
     })
   }
-  const maxId = persons.length > 0
-    ? Math.max(...persons.map(p => p.id)) + 1
-    : 0
   const person = new Person({
-    id: maxId,
     name: content.name,
     number: content.number
   })
