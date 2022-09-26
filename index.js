@@ -15,19 +15,21 @@ morgan.token('body', req => {
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 app.get('/api/persons', (request, response) => {
-  Person.find({}).then(persons => {
-    response.json(persons)
-  })
+  Person.find({})
+    .then(persons => {
+      response.json(persons)
+    })
 })
 
 app.get('/info', (request, response) => {
   const date = new Date()
-  Person.countDocuments({}).then(count => {
-    response.send(`
-      <p>Phonebook has ${count} people</p>
-      <p>${date}</p>
-    `)
-  })
+  Person.countDocuments({})
+    .then(count => {
+      response.send(`
+        <p>Phonebook has ${count} people</p>
+        <p>${date}</p>
+      `)
+    })
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -67,11 +69,6 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 app.post('/api/persons/', (request, response, next) => {
   const content = request.body
-  if (!content.name || !content.number) {
-    return response.status(400).json({
-      error: 'name or number missing'
-    })
-  }
   const person = new Person({
     name: content.name,
     number: content.number
@@ -95,7 +92,7 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError') {
-    return response.status(400).json({ message: error.message})
+    return response.status(400).json({ error: error.message})
   }
 
   next(error)
